@@ -6,6 +6,10 @@ var ctx = canvas.getContext('2d');
 var width = canvas.width = window.innerWidth;
 var height = canvas.height = window.innerHeight;
 
+let para = document.querySelector('p');
+//The number of balls initialy on screen.
+let balls = [];
+let collisionCount = 0;
 // function to generate random number
 
 function random(min,max) {
@@ -88,9 +92,10 @@ Ball.prototype.collisionDetect = function() {
       var dy = this.y - balls[j].y;
       var distance = Math.sqrt(dx * dx + dy * dy);
 
-      if (distance < this.size + balls[j].size) {
+      if (distance < this.size + balls[j].size && balls[j].exists) {
         balls[j].color = this.color = 'rgb(' + random(0, 255) + ',' +
         random(0, 255) + ',' + random(0, 255) +')';
+        collisionCount++;
       }
     }
   }
@@ -163,19 +168,17 @@ EvilCircle.prototype.collisionDetect = function() {
   }
 }
 
-let balls = [];
-//count how many times the loop runs
-let counter = 0;
-//evilBall is the only instance of EvilCircle that we need. 
+//evilBall is the only instance of EvilCircle that we need.
 let evilBall = new EvilCircle(200, 200, true);
+//set controls of the evilBall instance
+evilBall.setControls();
 
 function loop() {
-  counter++;
   ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
   ctx.fillRect(0, 0, width, height);
 
   while (balls.length < 30) {
-    var size = random(10,50);
+    var size = random(30,80);
     var ball = new Ball(
       // ball position always drawn at least one ball width
       // away from the edge of the canvas, to avoid drawing errors
@@ -190,15 +193,22 @@ function loop() {
     balls.push(ball);
   }
 
+  //counter for the number of balls that currently exist
+  let counter = 0;
   for (var i = 0; i < balls.length; i++) {
     if(balls[i].exists) {
+      counter++;
       balls[i].draw();
       balls[i].update();
       balls[i].collisionDetect();
     }
   }
 
-
+  para.textContent = "Ball Count: " + counter + " Total Ball Collisions: " +
+    collisionCount;
+  evilBall.draw();
+  evilBall.checkBounds();
+  evilBall.collisionDetect();
 
   requestAnimationFrame(loop);
 }
